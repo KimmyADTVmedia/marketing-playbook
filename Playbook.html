@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Marketing Playbook: August</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A dashboard-style application was chosen to transform the static text-based plan into a dynamic and usable tool. The structure includes a header with primary goals, a section for weekly KPIs with an interactive chart, and a core interactive calendar. A master-detail pattern is used where clicking a day on the calendar populates a detail pane. This is more user-friendly than a long scroll, allowing users to view the month at a glance or filter by task type (e.g., see all 'Email' tasks) for better planning and execution. -->
+    <!-- Visualization & Content Choices: Report Info: Primary Goals -> Goal: Inform -> Presentation: Icon-driven cards -> Justification: Quick, scannable reference. Report Info: Weekly Habits (quantitative) -> Goal: Compare/Track -> Viz: Chart.js Donut Chart & HTML/JS Counter -> Interaction: Hover tooltips & clickable counter -> Justification: Visualizes content mix and gamifies tracking of the 'coffee meetings' KPI. Report Info: Daily Tasks -> Goal: Organize/Explore -> Presentation: Interactive HTML Calendar Grid -> Interaction: Click to view details, filter by task type -> Justification: Provides a familiar, intuitive interface for exploring a time-based plan. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #4A4A4A;
+        }
+        .task-day {
+            transition: all 0.2s ease-in-out;
+        }
+        .task-day:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .active-filter {
+            background-color: #A58A73 !important;
+            color: #FFFFFF !important;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 300px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-7xl">
+        
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-[#A58A73] mb-2">Interactive Marketing Playbook</h1>
+            <p class="text-lg text-gray-600">Your 30-Day Guide for August</p>
+        </header>
+
+        <section id="goals" class="mb-12">
+             <div class="text-left mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Primary Goals for the Month</h2>
+                <p class="text-gray-500 mt-1">This playbook is designed to help you achieve three key objectives. Focus on these outcomes as you complete the daily tasks.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6 text-center">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <div class="text-4xl mb-3">🏆</div>
+                    <h3 class="font-semibold text-lg text-gray-800">Community Leadership</h3>
+                    <p class="text-gray-500 text-sm">Position yourself as a go-to industry expert and community leader.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <div class="text-4xl mb-3">🤝</div>
+                    <h3 class="font-semibold text-lg text-gray-800">Agent Recruitment</h3>
+                    <p class="text-gray-500 text-sm">Leverage your host status to recruit agents with the 5-1 model.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <div class="text-4xl mb-3">📈</div>
+                    <h3 class="font-semibold text-lg text-gray-800">Boost Engagement</h3>
+                    <p class="text-gray-500 text-sm">Increase online engagement and generate more referral opportunities.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="weekly-habits" class="mb-12 bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-200">
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-center">
+                <div class="lg:col-span-1">
+                     <h2 class="text-2xl font-bold text-gray-800 mb-4">Weekly Habits & KPIs</h2>
+                     <p class="text-gray-500 mb-6">Consistency is key. Integrate these habits into your weekly routine to build momentum and achieve your monthly goals.</p>
+                    <div id="coffee-tracker" class="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                        <div>
+                            <p class="font-semibold text-gray-700">Agent Coffee Chats</p>
+                            <p class="text-sm text-gray-500">Goal: 5 per week</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="decrement" class="bg-gray-200 text-gray-700 w-8 h-8 rounded-full font-bold text-lg">-</button>
+                            <span id="coffee-count" class="font-bold text-2xl text-[#A58A73]">0</span>
+                            <button id="increment" class="bg-gray-200 text-gray-700 w-8 h-8 rounded-full font-bold text-lg">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-1">
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-center"><span class="bg-[#C3B09D] w-2 h-2 rounded-full mr-3"></span>2-3 Reels or Stories per week</li>
+                        <li class="flex items-center"><span class="bg-[#C3B09D] w-2 h-2 rounded-full mr-3"></span>Daily Agent Engagement (DMs/Comments)</li>
+                        <li class="flex items-center"><span class="bg-[#C3B09D] w-2 h-2 rounded-full mr-3"></span>1 Email Campaign per week</li>
+                        <li class="flex items-center"><span class="bg-[#C3B09D] w-2 h-2 rounded-full mr-3"></span>1 Behind-the-Scenes post per week</li>
+                        <li class="flex items-center"><span class="bg-[#C3B09D] w-2 h-2 rounded-full mr-3"></span>Ongoing Promotion of Referral Bonus</li>
+                    </ul>
+                </div>
+                <div class="lg:col-span-1">
+                    <h3 class="text-lg font-semibold text-center mb-2 text-gray-700">Weekly Content Mix</h3>
+                    <div class="chart-container">
+                        <canvas id="habitsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <main class="grid lg:grid-cols-3 gap-8">
+            <div id="calendar-view" class="lg:col-span-2">
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button data-filter="all" class="filter-btn active-filter px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-100">All Tasks</button>
+                    <button data-filter="social" class="filter-btn px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-100">Social Posts</button>
+                    <button data-filter="engagement" class="filter-btn px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-100">Engagement</button>
+                    <button data-filter="email" class="filter-btn px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-100">Email</button>
+                    <button data-filter="prep" class="filter-btn px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-100">Prep</button>
+                </div>
+                <div id="calendar-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                </div>
+            </div>
+
+            <aside id="details-pane" class="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-fit sticky top-8">
+                <div id="details-content" class="text-center">
+                    <div class="text-5xl mb-4">📅</div>
+                    <h3 class="font-semibold text-lg text-gray-800">Select a Date</h3>
+                    <p class="text-gray-500">Click on a highlighted day in the calendar to see the task details and pro-tips for the day.</p>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tasks = [
+                { day: 1, title: "National Girlfriends Day", type: "engagement", content: "Post a light, friendly reel or story: 'Tag a powerful woman in real estate who inspires you!'", tip: "Engage with every comment to boost visibility. Share some of the tagged profiles to your story for extra goodwill." },
+                { day: 2, title: "Announce TV Host Status", type: "social", content: "Announce your host status on all platforms with branded graphics or HeyGen avatar video.", tip: "Pin this post to the top of your Facebook and LinkedIn profiles for the entire month." },
+                { day: 3, title: "National Watermelon Day", type: "social", content: "Casual 'slice-of-life' post or story: 'Enjoying the last bits of summer 🍉 — what’s your favorite summer memory so far?'", tip: "This humanizes your brand. Respond to comments with questions to keep the conversation going." },
+                { day: 4, title: "Email to Realtor Network", type: "email", content: "Subject: Join Me on TV! Let's Collaborate on the Next Show.", tip: "Include a clear call-to-action with a link to a simple form or your calendar to express interest." },
+                { day: 7, title: "National Lighthouse Day", type: "social", content: "'As a lender, I help guide you home—just like a lighthouse.' Creative analogy post with a call-to-action.", tip: "Use a high-quality, striking image of a lighthouse. Ask 'What's your beacon in a complex transaction?'" },
+                { day: 8, title: "Instagram Live: 'Ask a Lender'", type: "engagement", content: "Focus on what’s trending in lending, interest rates, etc.", tip: "Promote the Live 24 hours in advance. Prepare 3-4 key talking points to start the conversation." },
+                { day: 9, title: "Top 3 Lending Tips", type: "social", content: "Post: 'Top 3 Lending Tips for August Buyers'", tip: "Use a carousel post format, with one tip per slide. It's highly shareable and saveable." },
+                { day: 10, title: "National Lazy Day", type: "social", content: "Light post: 'You relax — I’ll handle the numbers. DM me for pre-approval help.'", tip: "Keep the tone humorous and low-pressure. This is about relatability, not a hard sell." },
+                { day: 13, title: "International Left-Handers Day", type: "engagement", content: "Fun poll or Reel: 'Lefties in real estate—sound off below!' Use humor and relatability.", tip: "This is a pure engagement play. Keep it fun and react to the comments with emojis or witty replies." },
+                { day: 15, title: "Unique Value Post", type: "social", content: "'Here’s what makes me different as a lender + host.' Focus on your unique value + media credibility.", tip: "Structure this around 3 bullet points. For example: 1. Media Credibility, 2. Extensive Network, 3. Seamless Process." },
+                { day: 16, title: "National Tell a Joke Day", type: "engagement", content: "Post a funny real estate/lending meme or Reel.", tip: "Search for popular real estate memes and give credit to the creator if possible. Humor is highly engaging." },
+                { day: 17, title: "Share a Testimonial", type: "social", content: "Share a testimonial or success story from an agent or client.", tip: "A video testimonial is most powerful. If it's text, put it on a branded graphic with the person's headshot." },
+                { day: 19, title: "World Photo Day", type: "social", content: "Post a favorite headshot or TV shoot photo with a story.", tip: "Tell the story behind the photo. What did you learn that day? Who did you meet? Make it personal." },
+                { day: 20, title: "Personal Video DMs", type: "engagement", content: "Send personal HeyGen video DMs to agents you want to recruit. Keep it under 60 seconds, personal, and high-energy.", tip: "Mention something specific from their profile to show you've done your research. End with a clear ask: 'Got 15 minutes for a virtual coffee next week?'" },
+                { day: 21, title: "Senior Citizens Day", type: "social", content: "Post a Reel or quote about how lending helps seniors downsize or invest.", tip: "Focus on the positive outcomes: financial freedom, living closer to family, etc. Use a warm, empathetic tone." },
+                { day: 23, title: "End-of-Month Recap", type: "social", content: "Highlight wins: agent collabs, referrals, or TV updates.", tip: "Celebrate your partners. Tag agents you collaborated with. This shows appreciation and strengthens relationships." },
+                { day: 25, title: "September Preview Email", type: "email", content: "'What’s coming in September' + invite to next shoot.", tip: "Create a sense of exclusivity and insider access. Tease a topic for the next show to build anticipation." },
+                { day: 26, title: "National Dog Day", type: "engagement", content: "Post your pet (or ask audience to share theirs). Great for engagement.", tip: "This is consistently one of the highest-engagement posts for any brand. Don't miss it!" },
+                { day: 27, title: "Prep for September", type: "prep", content: "Prep social/marketing content for September. Batch reels, email copy, or calendar invites for September follow-ups.", tip: "Block 2-3 hours for this. Batching content is far more efficient than creating it daily." },
+                { day: 28, title: "Prep for September", type: "prep", content: "Prep social/marketing content for September.", tip: "Focus on writing email copy and scheduling it in your email marketing tool." },
+                { day: 29, title: "Prep for September", type: "prep", content: "Prep social/marketing content for September.", tip: "Record and edit 2-3 reels so they are ready to post for the first week of September." },
+                { day: 30, title: "Prep for September", type: "prep", content: "Prep social/marketing content for September.", tip: "Finalize your September calendar and send out coffee meeting invites to potential agent partners." },
+                { day: 31, title: "National Eat Outside Day", type: "social", content: "Lifestyle post: lunch with a client or agent, picnic, patio coffee chat.", tip: "Showcase your work life in a relatable way. Tag the agent, client, or coffee shop to expand your reach." }
+            ];
+
+            const calendarGrid = document.getElementById('calendar-grid');
+            const detailsContent = document.getElementById('details-pane');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            
+            const taskMap = new Map(tasks.map(task => [task.day, task]));
+
+            function renderCalendar() {
+                calendarGrid.innerHTML = '';
+                for (let day = 1; day <= 31; day++) {
+                    const dayEl = document.createElement('div');
+                    const task = taskMap.get(day);
+
+                    if (task) {
+                        dayEl.className = 'task-day cursor-pointer bg-white p-4 rounded-lg shadow-sm border border-gray-200';
+                        dayEl.dataset.day = day;
+                        dayEl.dataset.taskType = task.type;
+                        dayEl.innerHTML = `
+                            <div class="font-bold text-sm text-[#A58A73]">AUG ${day}</div>
+                            <p class="text-gray-700 font-medium text-sm mt-1">${task.title}</p>
+                        `;
+                        dayEl.addEventListener('click', () => showDetails(day));
+                    } else {
+                        dayEl.className = 'p-4 rounded-lg bg-gray-50 text-gray-400';
+                        dayEl.innerHTML = `<div class="font-bold text-sm">AUG ${day}</div>`;
+                    }
+                    calendarGrid.appendChild(dayEl);
+                }
+            }
+            
+            function showDetails(day) {
+                const task = taskMap.get(day);
+                if (!task) return;
+
+                detailsContent.innerHTML = `
+                    <div class="text-left">
+                        <p class="font-bold text-lg text-[#A58A73]">August ${task.day}</p>
+                        <h3 class="font-bold text-xl text-gray-800 mt-1 mb-3">${task.title}</h3>
+                        <p class="text-gray-600 mb-4">${task.content}</p>
+                        <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                            <h4 class="font-semibold text-amber-800">Pro-Tip</h4>
+                            <p class="text-amber-700 text-sm mt-1">${task.tip}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active-filter'));
+                    btn.classList.add('active-filter');
+                    
+                    const filter = btn.dataset.filter;
+                    const allDays = document.querySelectorAll('.task-day');
+                    
+                    allDays.forEach(dayEl => {
+                        if (filter === 'all' || dayEl.dataset.taskType === filter) {
+                            dayEl.style.display = 'block';
+                        } else {
+                            dayEl.style.display = 'none';
+                        }
+                    });
+                });
+            });
+            
+            const coffeeCountEl = document.getElementById('coffee-count');
+            const incrementBtn = document.getElementById('increment');
+            const decrementBtn = document.getElementById('decrement');
+            let coffeeCount = 0;
+
+            incrementBtn.addEventListener('click', () => {
+                if (coffeeCount < 5) {
+                    coffeeCount++;
+                    coffeeCountEl.textContent = coffeeCount;
+                }
+            });
+            
+            decrementBtn.addEventListener('click', () => {
+                if (coffeeCount > 0) {
+                    coffeeCount--;
+                    coffeeCountEl.textContent = coffeeCount;
+                }
+            });
+
+            const ctx = document.getElementById('habitsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Reels/Stories', 'Emails', 'Teasers/BTS'],
+                    datasets: [{
+                        label: 'Weekly Content Mix',
+                        data: [3, 1, 1],
+                        backgroundColor: [
+                            '#A58A73',
+                            '#C3B09D',
+                            '#EAE0D5'
+                        ],
+                        borderColor: '#FDFBF8',
+                        borderWidth: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#4A4A4A',
+                                font: {
+                                    family: "'Inter', sans-serif"
+                                }
+                            }
+                        },
+                        tooltip: {
+                            bodyFont: {
+                                family: "'Inter', sans-serif"
+                            },
+                            titleFont: {
+                                family: "'Inter', sans-serif"
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+
+            renderCalendar();
+        });
+    </script>
+</body>
+</html>
